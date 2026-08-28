@@ -26,7 +26,9 @@ export async function GET() {
 
     // Filter sensor berdasarkan lokasi/tipe jika ada
     const oxbowSensor = waterSensors.find((s) =>
-      s.locationName?.toLowerCase().includes("oxbow") || s.id.toLowerCase().includes("oxbow")
+    s.location?.toLowerCase().includes("oxbow") ||
+    s.name?.toLowerCase().includes("oxbow") ||
+    s.id.toLowerCase().includes("oxbow")
     ) || waterSensors[0];
 
     const oxbowLevel = oxbowSensor?.readings[0]?.levelM ?? 0.9;
@@ -41,7 +43,7 @@ export async function GET() {
         currentRainfallMm: currentRainfall,
         sensors: waterSensors.map((s) => ({
           id: s.id,
-          name: s.locationName || s.id,
+          name: s.name || s.location || s.id,
           lastLevel: s.readings[0]?.levelM ?? 0,
           lastSeen: s.lastSeenAt,
         })),
