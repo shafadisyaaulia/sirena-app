@@ -36,7 +36,7 @@ const DigitalTwinViewer = dynamicImport(
 );
 
 export default async function DigitalTwinPage() {
-  // Mengambil 3 sensor muka air beserta pembacaan terakhirnya
+  // 1. Mengambil 3 sensor muka air beserta pembacaan terakhirnya
   const sensors = await prisma.waterLevelSensor.findMany({
     take: 3,
     include: {
@@ -47,20 +47,20 @@ export default async function DigitalTwinPage() {
     },
   });
 
-  // Mengambil simulasi Digital Twin Run terakhir
+  // 2. Mengambil simulasi Digital Twin Run terakhir
   const lastRun = await prisma.digitalTwinRun.findFirst({
     orderBy: { startedAt: "desc" },
     include: { parameterSet: true },
   });
 
-  // Mengambil status pintu air KP-02 terbaru
-  const gateStatus = await prisma.gateControl?.findFirst({
+  // 3. Mengambil status pintu air KP-02 terbaru dari tabel GateControl
+  const gateStatus = await prisma.gateControl.findFirst({
     orderBy: { updatedAt: "desc" },
   }).catch(() => null);
 
   // LOGIKA STATUS PIPELINE SIMULASI
   const rawStatus = lastRun?.status?.toUpperCase() ?? "IDLE";
-  const isRunning = rawStatus === "RUNNING" || rawStatus === "IN_PROGRESS";
+  const isRunning = rawStatus === "RUNNING" || rawStatus === "IN_PROGRESS" || rawStatus === "QUEUED";
   const isCompleted = rawStatus === "COMPLETED" || rawStatus === "SUCCESS";
   const isIdle = rawStatus === "IDLE" || rawStatus === "PENDING" || !lastRun;
 
@@ -74,15 +74,21 @@ export default async function DigitalTwinPage() {
 
   const storagePercentage = Math.min(100, Math.max(0, (storageUsed / storageCapacity) * 100)).toFixed(2);
 
-  // Nilai bukaan pintu air
-  const gateOpeningPct = gateStatus?.openingPct ?? lastRun?.gateOpeningPct ?? 45;
+  // 4. Safely extract nilai bukaan pintu air dari gateStatus atau JSON diversionStrategy
+  const gateOpeningPct =
+    gateStatus?.openingPercent ??
+    (lastRun?.diversionStrategy as { openingPercent?: number } | null)?.openingPercent ??
+    45;
 
-  // Menentukan badge status tiap tahap berdasarkan kondisi simulasi
+  // 5. Menentukan badge status tiap tahap berdasarkan kondisi simulasi
   const getStepStatus = (step: number): "COMPLETE" | "RUNNING" | "WAITING" => {
     if (isCompleted) return "COMPLETE";
     if (isIdle) return "WAITING";
     
-    const currentProgressStep = (lastRun as any)?.currentStep ?? 1;
+    // Safely extract currentStep dari JSON diversionStrategy atau fallback ke step 1
+    const currentProgressStep =
+      (lastRun?.diversionStrategy as { currentStep?: number } | null)?.currentStep ?? 1;
+
     if (step < currentProgressStep) return "COMPLETE";
     if (step === currentProgressStep) return "RUNNING";
     return "WAITING";
@@ -188,7 +194,6 @@ export default async function DigitalTwinPage() {
           </span>
         </div>
         <DigitalTwinViewer 
-          score={isCompleted ? (lastRun?.peakDischargeM3s ? Math.min(100, Math.round((lastRun.peakDischargeM3s / 1500) * 100)) : 68) : 0} 
           gateOpening={gateOpeningPct}
         />
       </Card>

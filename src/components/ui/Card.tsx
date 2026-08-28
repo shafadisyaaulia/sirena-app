@@ -8,8 +8,12 @@ export function Card({ className, children }: { className?: string; children: Re
   );
 }
 
-export function CardTitle({ children }: { children: React.ReactNode }) {
-  return <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">{children}</h3>;
+export function CardTitle({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <h3 className={cn("text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1", className)}>
+      {children}
+    </h3>
+  );
 }
 
 export function StatValue({ children }: { children: React.ReactNode }) {
