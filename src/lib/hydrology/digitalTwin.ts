@@ -51,7 +51,7 @@ export async function runDigitalTwin(input: RunDigitalTwinInput) {
         });
         return {
           gaugeId: g.id,
-          weight: g.thiessenPolygons[0]?.weight ?? 0,
+          weight: g.thiessenPolygons?.weight ?? 0,
           rainfallMm: latest?.rainfallMm ?? null,
         };
       })
