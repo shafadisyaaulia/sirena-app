@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buildEsgCsv, buildEsgPdf } from "@/lib/esg/export";
+import { EsgMetricSnapshot } from "@prisma/client";
 
 /**
  * ESG-5: ekspor laporan PDF/CSV untuk periode tertentu.
@@ -19,7 +20,8 @@ export async function GET(req: NextRequest) {
   const to = searchParams.get("to");
   const format = (searchParams.get("format") ?? "pdf") as "pdf" | "csv";
 
-  let snapshots = [];
+  // Penambahan tipe eksplisit EsgMetricSnapshot[] untuk mencegah error TypeScript
+  let snapshots: EsgMetricSnapshot[] = [];
 
   // 1. Ambil snapshot berdasarkan rentang tanggal jika parameter diisi
   if (from && to) {
