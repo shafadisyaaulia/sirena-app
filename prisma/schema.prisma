@@ -1,0 +1,353 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String               @id @default(cuid())
+  name              String
+  email             String               @unique
+  passwordHash      String
+  role              Role                 @default(OPERATOR)
+  phone             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  auditLogs         AuditLog[]
+  gateEvents        GateActuationEvent[]
+  acknowledgedFlags RecoveryFlag[]
+}
+
+model RainGauge {
+  id               String           @id @default(cuid())
+  name             String
+  stationCode      String           @unique
+  latitude         Float
+  longitude        Float
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  readings         RainReading[]
+  thiessenPolygons ThiessenPolygon?
+}
+
+model RainReading {
+  id         String     @id @default(cuid())
+  gaugeId    String
+  timestamp  DateTime
+  rainfallMm Float
+  source     RainSource @default(BMKG_STATION)
+  createdAt  DateTime   @default(now())
+  gauge      RainGauge  @relation(fields: [gaugeId], references: [id])
+
+  @@index([gaugeId, timestamp])
+  @@index([timestamp])
+}
+
+model ThiessenPolygon {
+  id        String    @id @default(cuid())
+  gaugeId   String    @unique
+  areaKm2   Float
+  weight    Float
+  updatedAt DateTime  @updatedAt
+  gauge     RainGauge @relation(fields: [gaugeId], references: [id])
+}
+
+model WaterLevelSensor {
+  id             String              @id @default(cuid())
+  name           String
+  location       SensorLocation
+  latitude       Float
+  longitude      Float
+  datumElevation Float
+  criticalLevel  Float
+  isActive       Boolean             @default(true)
+  lastSeenAt     DateTime?
+  createdAt      DateTime            @default(now())
+  readings       WaterLevelReading[]
+
+  @@index([location])
+}
+
+model WaterLevelReading {
+  id        String           @id @default(cuid())
+  sensorId  String
+  timestamp DateTime
+  levelM    Float
+  isOnline  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  sensor    WaterLevelSensor @relation(fields: [sensorId], references: [id])
+
+  @@index([sensorId, timestamp])
+  @@index([timestamp])
+}
+
+model HydrologyParameterSet {
+  id                   String           @id @default(cuid())
+  name                 String
+  isActive             Boolean          @default(false)
+  curveNumberCN        Float
+  alpha                Float
+  tg                   Float
+  catchmentAreaKm2     Float
+  riverLengthKm        Float
+  stormDurationHr      Float            @default(6)
+  timeStepMin          Int              @default(10)
+  gateCapacityM3s      Float            @default(200)
+  storageCapacityM3    Float            @default(3380000)
+  operationalMaxLevelM Float            @default(7.0)
+  emergencyFreeboardM  Float            @default(1.0)
+  notes                String?
+  createdAt            DateTime         @default(now())
+  createdBy            String?
+  runs                 DigitalTwinRun[]
+}
+
+model DigitalTwinRun {
+  id                    String                @id @default(cuid())
+  startedAt             DateTime              @default(now())
+  finishedAt            DateTime?
+  status                TwinRunStatus         @default(QUEUED)
+  trigger               TwinRunTrigger        @default(SCHEDULED)
+  parameterSetId        String
+  arealRainfallMm       Float?
+  degradedSensors       String[]
+  peakDischargeM3s      Float?
+  timeToPeakMin         Int?
+  storageUsedM3         Float?
+  storageAvailableM3    Float?
+  exceedsIntakeCapacity Boolean?
+  diversionStrategy     Json?
+  errorMessage          String?
+  parameterSet          HydrologyParameterSet @relation(fields: [parameterSetId], references: [id])
+  gateEvents            GateActuationEvent[]
+  hydrograph            HydrographPoint[]
+  notifications         Notification[]
+  recoveryFlags         RecoveryFlag[]
+
+  @@index([status])
+  @@index([startedAt])
+}
+
+model HydrographPoint {
+  id         String         @id @default(cuid())
+  runId      String
+  tMinutes   Int
+  inflowM3s  Float
+  outflowM3s Float?
+  storageM3  Float?
+  run        DigitalTwinRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, tMinutes])
+}
+
+model Gate {
+  id                    String               @id @default(cuid())
+  name                  String
+  type                  GateType
+  widthM                Float
+  openingHeightM        Float
+  currentOpeningPercent Float                @default(0)
+  isManualOverride      Boolean              @default(false)
+  updatedAt             DateTime             @updatedAt
+  events                GateActuationEvent[]
+}
+
+model GateActuationEvent {
+  id                   String          @id @default(cuid())
+  gateId               String
+  timestamp            DateTime        @default(now())
+  mode                 ActuationMode
+  triggerReason        String
+  openingPercentBefore Float
+  openingPercentAfter  Float
+  twinRunId            String?
+  confirmedByUserId    String?
+  confirmedByUser      User?           @relation(fields: [confirmedByUserId], references: [id])
+  gate                 Gate            @relation(fields: [gateId], references: [id])
+  twinRun              DigitalTwinRun? @relation(fields: [twinRunId], references: [id])
+
+  @@index([timestamp])
+  @@index([gateId, timestamp])
+}
+
+model Household {
+  id         String                 @id @default(cuid())
+  name       String
+  phone      String
+  village    String
+  riskZone   String?
+  hasApp     Boolean                @default(false)
+  isActive   Boolean                @default(true)
+  createdAt  DateTime               @default(now())
+  deliveries NotificationDelivery[]
+}
+
+model Notification {
+  id             String                 @id @default(cuid())
+  createdAt      DateTime               @default(now())
+  severity       Severity
+  title          String
+  message        String
+  twinRunId      String?
+  recoveryFlagId String?
+  recoveryFlag   RecoveryFlag?          @relation(fields: [recoveryFlagId], references: [id])
+  twinRun        DigitalTwinRun?        @relation(fields: [twinRunId], references: [id])
+  deliveries     NotificationDelivery[]
+
+  @@index([createdAt])
+  @@index([severity])
+}
+
+model NotificationDelivery {
+  id                   String         @id @default(cuid())
+  notificationId       String
+  channel              Channel
+  recipientHouseholdId String?
+  recipientAddress     String
+  status               DeliveryStatus @default(PENDING)
+  attempt              Int            @default(1)
+  sentAt               DateTime?
+  errorMessage         String?
+  notification         Notification   @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  recipientHousehold   Household?     @relation(fields: [recipientHouseholdId], references: [id])
+
+  @@index([notificationId])
+  @@index([status])
+}
+
+model RecoveryFlag {
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  severity         Severity
+  triggerSensorId  String?
+  triggerReading   String?
+  twinRunId        String?
+  status           RecoveryFlagStatus @default(OPEN)
+  acknowledgedAt   DateTime?
+  acknowledgedById String?
+  notes            String?
+  notifications    Notification[]
+  acknowledgedBy   User?              @relation(fields: [acknowledgedById], references: [id])
+  twinRun          DigitalTwinRun?    @relation(fields: [twinRunId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EsgMetricSnapshot {
+  id                        String   @id @default(cuid())
+  periodStart               DateTime
+  periodEnd                 DateTime
+  waterDivertedM3           Float    @default(0)
+  cleanWaterSuppliedM3      Float    @default(0)
+  irrigationWaterSuppliedM3 Float    @default(0)
+  avgWarningLeadTimeMin     Float?
+  systemUtilizationRate     Float?
+  floodRiskReductionPct     Float?
+  generatedAt               DateTime @default(now())
+
+  @@index([periodStart, periodEnd])
+}
+
+model ExportReport {
+  id          String     @id @default(cuid())
+  type        ExportType
+  periodStart DateTime
+  periodEnd   DateTime
+  filePath    String
+  generatedAt DateTime   @default(now())
+  generatedBy String?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  detail    Json?
+  actor     User?    @relation(fields: [actorId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([timestamp])
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  BPBD
+  STAKEHOLDER_VIEWER
+}
+
+enum RainSource {
+  BMKG_STATION
+  SATELLITE_GPM
+  SATELLITE_HIMAWARI
+}
+
+enum SensorLocation {
+  HULU
+  HILIR
+  OXBOW
+}
+
+enum TwinRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum TwinRunTrigger {
+  SCHEDULED
+  MANUAL
+  RAIN_EVENT
+}
+
+enum GateType {
+  SLUICE_INTAKE
+  FLUSHING
+}
+
+enum ActuationMode {
+  AUTO
+  MANUAL
+  MANUAL_IN_THE_LOOP
+}
+
+enum Severity {
+  NORMAL
+  WASPADA
+  SIAGA
+  AWAS
+}
+
+enum Channel {
+  APP
+  WHATSAPP
+  USSD
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum RecoveryFlagStatus {
+  OPEN
+  ACKNOWLEDGED
+  FORWARDED_TO_BPBD
+  CLOSED
+}
+
+enum ExportType {
+  PDF
+  CSV
+}
