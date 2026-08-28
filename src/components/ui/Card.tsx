@@ -16,6 +16,10 @@ export function CardTitle({ className, children }: { className?: string; childre
   );
 }
 
-export function StatValue({ children }: { children: React.ReactNode }) {
-  return <p className="text-2xl font-bold text-sirena-navy">{children}</p>;
+export function StatValue({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <p className={cn("text-2xl font-bold text-sirena-navy", className)}>
+      {children}
+    </p>
+  );
 }
