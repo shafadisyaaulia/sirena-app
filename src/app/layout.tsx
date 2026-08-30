@@ -1,5 +1,6 @@
 import "./globals.css";
-import Providers from "@/components/Providers"; // Sesuaikan path jika disimpan di tempat lain
+import Providers from "@/components/Providers";
+import { Sidebar } from "@/components/Sidebar"; // Import komponen Sidebar
 
 export const metadata = {
   title: "SIRENA App",
@@ -13,8 +14,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body>
-        <Providers>{children}</Providers>
+      <body className="bg-slate-50 text-slate-900 antialiased">
+        <Providers>
+          <div className="flex min-h-screen">
+            {/* Sidebar Komponen Utama */}
+            <Sidebar />
+
+            {/* Container Konten Utama */}
+            {/* pt-16 memberi ruang untuk Mobile Topbar (64px) di HP, md:pt-0 meresetnya di Desktop */}
+            <main className="flex-1 w-full min-w-0 pt-16 md:pt-0">
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   );
