@@ -10,12 +10,12 @@ import {
   Cpu,
   Droplets,
   HardDrive,
-  Layers,
   Radio,
   RefreshCw,
   ShieldCheck,
   Sliders,
   Waves,
+  Layers
 } from "lucide-react";
 
 interface SensorApiData {
@@ -70,25 +70,26 @@ export default function DashboardPage() {
 
   let statusText = "Aman / Normal";
   let statusBadgeClass = "bg-emerald-100 text-emerald-900 border-emerald-300";
-  let statusBgGradient = "from-emerald-500 to-teal-600";
+  let strokeColor = "#059669"; // Emerald 600
 
   if (riskScore > 75) {
     statusText = "BAHAYA / BANJIR";
     statusBadgeClass = "bg-rose-100 text-rose-900 border-rose-300 font-extrabold";
-    statusBgGradient = "from-red-500 to-rose-600";
+    strokeColor = "#e11d48"; // Rose 600
   } else if (riskScore > 45) {
     statusText = "WASPADA / SIAGA";
     statusBadgeClass = "bg-amber-100 text-amber-900 border-amber-300 font-extrabold";
-    statusBgGradient = "from-amber-500 to-orange-600";
+    strokeColor = "#d97706"; // Amber 600
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-800 p-6 md:p-10 space-y-8 font-sans">
+    // Dihapus min-h-screen agar menyatu sempurna dengan layout global
+    <div className="p-4 md:p-8 space-y-8 font-sans w-full max-w-7xl mx-auto">
       {/* Top Header Panel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 md:p-8 rounded-3xl border border-teal-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-2xs">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-teal-50 border border-teal-300 text-teal-800 text-sm font-bold">
+            <span className="px-3 py-1 rounded-full bg-teal-50 border border-teal-300 text-teal-800 text-xs md:text-sm font-bold">
               Live Monitoring System
             </span>
             <span className="flex items-center gap-1.5 text-xs md:text-sm font-semibold text-slate-600 ml-2">
@@ -96,10 +97,10 @@ export default function DashboardPage() {
               Sistem Aktif
             </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
             Dashboard Utama SIRENA
           </h1>
-          <p className="text-sm md:text-base text-slate-700 font-medium mt-1">
+          <p className="text-xs md:text-base text-slate-600 font-medium mt-1">
             Selamat datang{session?.user?.name ? `, ${session.user.name}` : ""}. Pantau resiliensi retensi Oxbow Krueng Tamiang secara real-time.
           </p>
         </div>
@@ -108,7 +109,7 @@ export default function DashboardPage() {
           <button
             onClick={loadSensorData}
             disabled={isRefreshing}
-            className="p-3 rounded-2xl border border-teal-200 hover:bg-teal-50 text-slate-700 transition-all flex items-center gap-2 font-bold text-sm"
+            className="p-3 rounded-2xl border border-teal-200 hover:bg-teal-50 text-slate-700 transition-all flex items-center gap-2 font-bold text-sm cursor-pointer"
             title="Refresh Data Sensor"
           >
             <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin text-teal-600" : ""}`} />
@@ -116,7 +117,7 @@ export default function DashboardPage() {
           </button>
           <div className="h-10 w-[1px] bg-slate-200 hidden sm:block" />
           <div className="text-right hidden sm:block">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">LOKASI KONTROL</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">LOKASI KONTROL</p>
             <p className="text-sm font-extrabold text-slate-800">Karang Baru, Aceh Tamiang</p>
           </div>
         </div>
@@ -160,20 +161,20 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Main Interactive Grid: Risk Gauge & Hydrology Model Controls */}
+      {/* Main Interactive Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Risk Assessment & Level Card */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-6 md:p-8 rounded-3xl border border-teal-200 shadow-sm flex flex-col justify-between space-y-6"
+          className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-2xs flex flex-col justify-between space-y-6"
         >
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2.5">
               <Activity className="w-6 h-6 text-teal-600" />
               <h2 className="font-bold text-slate-900 text-base md:text-lg">Status Assessment Risiko</h2>
             </div>
-            <span className={`px-3.5 py-1.5 text-xs md:text-sm font-extrabold rounded-full border ${statusBadgeClass}`}>
+            <span className={`px-3 py-1 text-xs font-extrabold rounded-full border ${statusBadgeClass}`}>
               {statusText}
             </span>
           </div>
@@ -189,11 +190,11 @@ export default function DashboardPage() {
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
                 <path
-                  className={`bg-gradient-to-r ${statusBgGradient} transition-all duration-700 ease-out`}
+                  className="transition-all duration-700 ease-out"
                   strokeDasharray={`${riskScore}, 100`}
                   strokeWidth="3.8"
                   strokeLinecap="round"
-                  stroke="currentColor"
+                  stroke={strokeColor}
                   fill="none"
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
@@ -218,19 +219,19 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Parametric Interactive Simulation Controls */}
+        {/* Parametric Simulation Controls */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-teal-200 shadow-sm flex flex-col justify-between space-y-6"
+          className="lg:col-span-2 bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-2xs flex flex-col justify-between space-y-6"
         >
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
               <Sliders className="w-6 h-6 text-teal-600" />
               <div>
                 <h2 className="font-bold text-slate-900 text-base md:text-lg">Simulasi Parameter Skenario</h2>
-                <p className="text-xs md:text-sm text-slate-600 font-medium">Atur parameter hidrologi untuk memodelkan debit banjir</p>
+                <p className="text-xs md:text-sm text-slate-500 font-medium">Atur parameter hidrologi untuk memodelkan debit banjir</p>
               </div>
             </div>
             <span className="text-xs font-bold font-mono bg-teal-50 text-teal-800 px-3 py-1.5 rounded-xl border border-teal-200">
@@ -239,7 +240,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-6">
-            {/* Slider 1: Curah Hujan */}
+            {/* Slider 1 */}
             <div className="space-y-2.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="flex items-center gap-2 font-bold text-slate-800">
@@ -255,16 +256,16 @@ export default function DashboardPage() {
                 max="150"
                 value={rainfall}
                 onChange={(e) => setRainfall(Number(e.target.value))}
-                className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
               />
-              <div className="flex justify-between text-xs text-slate-500 font-bold">
+              <div className="flex justify-between text-xs text-slate-400 font-bold">
                 <span>Rendah (0 mm)</span>
                 <span>Sedang (50 mm)</span>
                 <span>Ekstrem (150 mm)</span>
               </div>
             </div>
 
-            {/* Slider 2: Durasi Hujan */}
+            {/* Slider 2 */}
             <div className="space-y-2.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="flex items-center gap-2 font-bold text-slate-800">
@@ -280,16 +281,16 @@ export default function DashboardPage() {
                 max="24"
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
               />
-              <div className="flex justify-between text-xs text-slate-500 font-bold">
+              <div className="flex justify-between text-xs text-slate-400 font-bold">
                 <span>1 Jam</span>
                 <span>12 Jam</span>
                 <span>24 Jam</span>
               </div>
             </div>
 
-            {/* Slider 3: Kejenuhan Tanah */}
+            {/* Slider 3 */}
             <div className="space-y-2.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="flex items-center gap-2 font-bold text-slate-800">
@@ -305,9 +306,9 @@ export default function DashboardPage() {
                 max="100"
                 value={soilSat}
                 onChange={(e) => setSoilSat(Number(e.target.value))}
-                className="w-full h-3 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
               />
-              <div className="flex justify-between text-xs text-slate-500 font-bold">
+              <div className="flex justify-between text-xs text-slate-400 font-bold">
                 <span>Kering (0%)</span>
                 <span>Lembap (50%)</span>
                 <span>Jenuh Total (100%)</span>
@@ -317,13 +318,13 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      {/* Hydrologic Chain & Module Shortcut Bar */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-teal-200 shadow-sm space-y-4">
+      {/* Rantai Hidrologi Bar */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-2xs space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2.5">
             <Cpu className="w-5 h-5 text-teal-600" /> Alur Rantai Hidrologi Adaptif (Engine SIRENA)
           </h2>
-          <span className="text-xs md:text-sm text-slate-600 font-bold hidden sm:inline">5 Tahapan Pemodelan Aktif</span>
+          <span className="text-xs md:text-sm text-slate-500 font-bold hidden sm:inline">5 Tahapan Pemodelan Aktif</span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
@@ -359,7 +360,7 @@ function StatWidget({
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="p-6 rounded-3xl bg-white border border-teal-200 shadow-sm flex flex-col justify-between space-y-4"
+      className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4"
     >
       <div className="flex items-start justify-between">
         <div className="p-3 bg-teal-50 border border-teal-100 rounded-2xl">{icon}</div>
@@ -380,9 +381,9 @@ function StatWidget({
       </div>
 
       <div>
-        <p className="text-xs md:text-sm text-slate-600 font-bold">{title}</p>
+        <p className="text-xs md:text-sm text-slate-500 font-bold">{title}</p>
         <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight my-1">{value}</p>
-        <p className="text-xs text-slate-500 font-medium">{sub}</p>
+        <p className="text-xs text-slate-400 font-medium">{sub}</p>
       </div>
     </motion.div>
   );
@@ -390,10 +391,10 @@ function StatWidget({
 
 function ChainStep({ number, title, desc }: { number: string; title: string; desc: string }) {
   return (
-    <div className="p-4 rounded-2xl bg-teal-50/40 border border-teal-100 text-left space-y-1 hover:border-teal-300 transition-colors">
+    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-left space-y-1 hover:border-teal-300 transition-colors">
       <span className="text-xs font-black text-teal-700 block">{number}</span>
       <h3 className="text-xs md:text-sm font-bold text-slate-900 leading-tight">{title}</h3>
-      <p className="text-xs text-slate-600 font-medium">{desc}</p>
+      <p className="text-xs text-slate-500 font-medium">{desc}</p>
     </div>
   );
 }

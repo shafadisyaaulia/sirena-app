@@ -18,12 +18,11 @@ import {
   X
 } from "lucide-react";
 
-// Tipe item navigasi dengan akses role
 interface NavLink {
   href: string;
   label: string;
   icon: React.ElementType;
-  roles?: string[]; // Jika undefined, berlaku untuk semua role
+  roles?: string[];
 }
 
 const links: NavLink[] = [
@@ -40,55 +39,46 @@ export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   
-  // Ambil role pengguna dari session NextAuth
   const userRole = (session?.user as any)?.role || "VIEWER";
   const userName = session?.user?.name || "Pengguna";
 
-  // Filter menu navigasi berdasarkan role
   const filteredLinks = links.filter((link) => {
     if (!link.roles) return true;
     return link.roles.includes(userRole);
   });
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
-
   return (
     <>
-      {/* 1. Header Mobile Topbar (Hanya muncul di Layar Kecil / Mobile) */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 px-4 flex items-center justify-between z-30 shadow-xs">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-black text-lg shadow-xs shadow-teal-200">
+      {/* Topbar Tombol Hamburger khusus layar HP */}
+      <div className="md:hidden w-full bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center text-white font-black text-sm">
             S
           </div>
-          <div>
-            <p className="text-sm font-bold text-slate-800 leading-tight">SIRENA App</p>
-            <p className="text-[10px] font-medium text-slate-400">Oxbow Krueng Tamiang</p>
-          </div>
-        </Link>
+          <span className="font-bold text-slate-800 text-sm">SIRENA App</span>
+        </div>
         <button
-          onClick={toggleSidebar}
-          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-          aria-label="Toggle Sidebar"
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
         >
           {isOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
-      {/* 2. Backdrop Gelap Mobile (Menutup sidebar jika area luar diklik) */}
+      {/* Overlay Gelap saat sidebar terbuka di HP */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          className="md:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 transition-opacity"
+          className="md:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40"
         />
       )}
 
-      {/* 3. Drawer Sidebar (Desktop & Mobile Slide-Over) */}
+      {/* Sidebar Panel Utama */}
       <aside
         className={cn(
-          "w-64 shrink-0 border-r border-slate-200 bg-white h-screen flex flex-col justify-between shadow-sm z-50 transition-transform duration-300 ease-in-out",
-          // Mobile: Fixed & Slide-In
-          "fixed top-0 left-0 bottom-0 md:sticky md:top-0",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          "w-64 shrink-0 border-r border-slate-200 bg-white h-screen sticky top-0 flex flex-col justify-between shadow-sm z-50 transition-transform duration-300 md:translate-x-0",
+          "fixed inset-y-0 left-0 md:relative",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header Sidebar */}
@@ -108,7 +98,6 @@ export function Sidebar() {
               </div>
             </Link>
 
-            {/* Tombol Tutup di dalam Sidebar khusus Mobile */}
             <button
               onClick={() => setIsOpen(false)}
               className="md:hidden p-1 rounded-lg text-slate-400 hover:text-slate-600"
@@ -129,7 +118,7 @@ export function Sidebar() {
                   <Link
                     key={href}
                     href={href}
-                    onClick={() => setIsOpen(false)} // Otomatis menutup drawer saat link diklik di HP
+                    onClick={() => setIsOpen(false)}
                     className={cn(
                       "group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200",
                       active
@@ -155,7 +144,7 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Footer Sidebar (Profil User & Tombol Logout) */}
+        {/* Footer Sidebar */}
         <div className="p-3 border-t border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200/80 mb-2 shadow-2xs">
             <div className="w-9 h-9 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 font-bold shrink-0">
