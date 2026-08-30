@@ -17,11 +17,12 @@ const PALETTE_3D = {
 const WORLD_W = 320, WORLD_D = 280
 
 const STATIONS_3D = [
-  { id: "hulu",         name: "Sungai Utama (Hulu)",    desc: "Aliran sungai utama bagian selatan.",                   t: 0.10, curve: "main",  mitigated: false, baseLevel: 1.2 },
-  { id: "gate_bawah",   name: "Pintu Irigasi - Bawah",  desc: "Pintu inlet penyerap air ke danau retensi Oxbow.",      t: 0.30, curve: "main",  mitigated: false, baseLevel: 1.3 },
-  { id: "oxbow",        name: "Kolam Retensi (KARBOX)", desc: "Danau Oxbow penampung air banjir & panel surya.",        t: 0.50, curve: "oxbow", mitigated: false, baseLevel: 0.9, isStorage: true },
-  { id: "gate_atas",    name: "Pintu Irigasi - Atas",   desc: "Pintu outlet pengeluaran air retensi kembali ke sungai.", t: 0.70, curve: "main",  mitigated: false, baseLevel: 1.4 },
-  { id: "hilir",        name: "Hilir & Permukiman",     desc: "Kawasan muara kota bagian utara.",                      t: 0.90, curve: "main",  mitigated: true,  baseLevel: 1.1 },
+  { id: "hulu",         name: "Badan Sungai Utama",      desc: "Aliran sungai utama penyuplai air.",                    t: 0.10, curve: "main",  mitigated: false, baseLevel: 1.2 },
+  { id: "intake_bawah", name: "Pintu / Intake Bawah",      desc: "Pintu masuk air dari sungai ke danau oxbow.",          t: 0.30, curve: "main",  mitigated: false, baseLevel: 1.3 },
+  { id: "oxbow_luar",   name: "Kanal Oxbow Luar & Solar",  desc: "Area kanal luar retensi yang dilengkapi Solar Panel.",  t: 0.50, curve: "oxbow", mitigated: false, baseLevel: 0.9, isStorage: true },
+  { id: "oxbow_tengah", name: "Badan Air Retensi Tengah",  desc: "Genangan air sungai masif mengisi penuh interior oxbow.",t: 0.50, curve: "inner", mitigated: true,  baseLevel: 1.0 },
+  { id: "pdam",         name: "Kantor & IPA PDAM",         desc: "Instalasi Pengolahan Air Bersih untuk warga.",          t: 0.55, curve: "oxbow", mitigated: true,  baseLevel: 1.0 },
+  { id: "intake_atas",  name: "Pintu / Intake Atas",       desc: "Pintu muara pengeluaran air kembali ke sungai.",        t: 0.70, curve: "main",  mitigated: false, baseLevel: 1.4 },
 ]
 
 const STAGES_3D = [
@@ -41,15 +42,15 @@ interface FeatureLabel {
 }
 
 const FEATURE_LABELS_3D: FeatureLabel[] = [
-  { id: "huluLbl",     text: "Hulu Sungai Utama",        pos: new THREE.Vector3( 45, 0,  100), ox: 70,  oy: 20 },
-  { id: "gateBawah",   text: "Pintu Irigasi - Bawah",    pos: new THREE.Vector3( 25, 0,   50), ox: 70,  oy: -30 },
-  { id: "oxbowLbl",    text: "Kolam Retensi (KARBOX)",   pos: new THREE.Vector3(-75, 0,    0), ox: -80, oy: -50, side: "left" },
-  { id: "solarLbl",    text: "Floating Solar Panel",     pos: new THREE.Vector3(-45, 0,    0), ox: -70, oy: 40,  side: "left" },
-  { id: "pdamLbl",     text: "Kantor PDAM",              pos: new THREE.Vector3(-115,0,    0), ox: -70, oy: -30, side: "left" },
-  { id: "gateAtas",    text: "Pintu Irigasi - Atas",     pos: new THREE.Vector3( 25, 0,  -50), ox: 70,  oy: -20 },
-  { id: "irigasiLbl",  text: "Saluran Irigasi",          pos: new THREE.Vector3( 70, 0,  -70), ox: 60,  oy: -40 },
-  { id: "sawahLbl",    text: "Lahan Pertanian",          pos: new THREE.Vector3(100, 0,  -90), ox: 60,  oy: 30 },
-  { id: "hilirLbl",    text: "Hilir & Permukiman Kota",  pos: new THREE.Vector3( 70, 0, -115), ox: 70,  oy: 30 },
+  { id: "sungaiLbl",   text: "Badan Sungai Utama",       pos: new THREE.Vector3( 55, 0,  100), ox: 70,  oy: 20 },
+  { id: "intakeBawah", text: "Pintu Intake Bawah",       pos: new THREE.Vector3( 25, 0,   50), ox: 70,  oy: -30 },
+  { id: "solarLbl",    text: "Floating Solar Panel",     pos: new THREE.Vector3(-55, 0,   -5), ox: -70, oy: -40, side: "left" },
+  { id: "innerRiver",  text: "Danau / Air Oxbow Tengah", pos: new THREE.Vector3(-40, 0,    0), ox: 0,   oy: -60 },
+  { id: "pdamLbl",     text: "Kantor & IPA PDAM",        pos: new THREE.Vector3(-115,0,    0), ox: -70, oy: -30, side: "left" },
+  { id: "intakeAtas",  text: "Pintu Intake Atas",        pos: new THREE.Vector3( 25, 0,  -50), ox: 70,  oy: -20 },
+  { id: "irigasiLbl",  text: "Saluran Irigasi",          pos: new THREE.Vector3( 55, 0,  -70), ox: 60,  oy: -40 },
+  { id: "sawahLbl",    text: "Lahan Pertanian",          pos: new THREE.Vector3( 90, 0,  -85), ox: 60,  oy: 30 },
+  { id: "perumahan",   text: "Pemukiman Warga",          pos: new THREE.Vector3(-120,0,  100), ox: -70, oy: 30,  side: "left" },
 ]
 
 function floodIntensity(t: number) {
@@ -67,42 +68,37 @@ function stationMetrics3D(station: typeof STATIONS_3D[0], t: number) {
   return { level, risk, color, intensity }
 }
 
-// ─── GEOMETRI KURVA SESUAI SKETSA ──────────────────────────────────────────
 function makeCurves3D() {
-  // 1. Sungai Utama (Mengalir Lurus dari Selatan/Bawah z=120 ke Utara/Atas z=-120)
   const main = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(45, 0,  130),
-    new THREE.Vector3(45, 0,   70),
-    new THREE.Vector3(45, 0,    0),
-    new THREE.Vector3(45, 0,  -70),
-    new THREE.Vector3(70, 0, -125),
+    new THREE.Vector3(65, 0,  130),
+    new THREE.Vector3(45, 0,   60),
+    new THREE.Vector3(75, 0,    0),
+    new THREE.Vector3(45, 0,  -60),
+    new THREE.Vector3(85, 0, -125),
   ])
 
-  // 2. Danau Retensi Oxbow berbentuk Tapal Kuda (U-shape ke kiri)
   const oxbow = new THREE.CatmullRomCurve3([
-    new THREE.Vector3( 20, 0,  50), // Ujung Bawah dekat Pintu Irigasi Bawah
+    new THREE.Vector3( 20, 0,  50),
     new THREE.Vector3(-45, 0,  50), 
     new THREE.Vector3(-90, 0,  30), 
-    new THREE.Vector3(-100,0,   0), // Lengkungan Barat (PDAM)
+    new THREE.Vector3(-100,0,   0), 
     new THREE.Vector3(-90, 0, -30),
     new THREE.Vector3(-45, 0, -50), 
-    new THREE.Vector3( 20, 0, -50), // Ujung Atas dekat Pintu Irigasi Atas
+    new THREE.Vector3( 20, 0, -50),
   ])
 
-  // 3. Saluran Irigasi ke Lahan Pertanian (Kanan Atas)
   const irigasi = new THREE.CatmullRomCurve3([
-    new THREE.Vector3( 45, 0, -60),
-    new THREE.Vector3( 75, 0, -75),
-    new THREE.Vector3(100, 0, -85),
+    new THREE.Vector3( 35, 0, -55),
+    new THREE.Vector3( 65, 0, -70),
+    new THREE.Vector3( 90, 0, -80),
   ])
 
-  // 4. Saluran Penghubung Horizontal (Kanal Pintu Air)
   const channelBawah = new THREE.CatmullRomCurve3([
-    new THREE.Vector3( 45, 0, 50),
+    new THREE.Vector3( 48, 0, 50),
     new THREE.Vector3(  5, 0, 50),
   ])
   const channelAtas = new THREE.CatmullRomCurve3([
-    new THREE.Vector3( 45, 0, -50),
+    new THREE.Vector3( 52, 0, -50),
     new THREE.Vector3(  5, 0, -50),
   ])
 
@@ -126,15 +122,21 @@ function distToSamples3D(x: number, z: number, samples: THREE.Vector3[]) {
 
 const BED_HALF = 7.0, BANK_WIDTH = 10.0, BED_DEPTH = -4.5
 
+function isInsideOxbowArea(x: number, z: number) {
+  if (x > 20 || x < -100) return false
+  if (z > 50 || z < -50) return false
+  const dx = x - 20
+  const distSq = dx * dx + z * z
+  return distSq <= 120 * 120
+}
+
 function terrainHeight3D(x: number, z: number, samples: THREE.Vector3[]) {
-  const dist = distToSamples3D(x, z, samples)
-  let base = Math.max(0, Math.sin(x * 0.015) * Math.cos(z * 0.015) * 8.0)
-  
-  // Tanggul di sekeliling Danau Oxbow
-  const oxbowCenterDist = Math.sqrt((x + 60) * (x + 60) + z * z)
-  if (oxbowCenterDist > 35 && oxbowCenterDist < 55 && x < 10) {
-    base += 3.5
+  if (isInsideOxbowArea(x, z)) {
+    return BED_DEPTH - 0.5
   }
+
+  const dist = distToSamples3D(x, z, samples)
+  let base = Math.max(0, Math.sin(x * 0.015) * Math.cos(z * 0.015) * 6.0)
 
   if (dist <= BED_HALF) return BED_DEPTH
   if (dist <= BED_HALF + BANK_WIDTH) {
@@ -149,14 +151,14 @@ function createWaterTexture() {
   const canvas = document.createElement("canvas")
   canvas.width = 256; canvas.height = 512
   const ctx = canvas.getContext("2d")!
-  ctx.fillStyle = "#1E5F74"
+  ctx.fillStyle = "#20627A"
   ctx.fillRect(0, 0, 256, 512)
   for (let i = 0; i < 50; i++) {
     const y = Math.random() * 512, h = 15 + Math.random() * 40, w = 40 + Math.random() * 100
     const x = Math.random() * (256 - w)
     const grad = ctx.createLinearGradient(x, y, x + w, y + h)
     grad.addColorStop(0, "rgba(255,255,255,0.0)")
-    grad.addColorStop(0.5, "rgba(255,255,255,0.22)")
+    grad.addColorStop(0.5, "rgba(255,255,255,0.25)")
     grad.addColorStop(1, "rgba(255,255,255,0.0)")
     ctx.fillStyle = grad; ctx.fillRect(x, y, w, h)
   }
@@ -176,20 +178,29 @@ function buildGroundTex3D(curves: ReturnType<typeof makeCurves3D>) {
     ((z + WORLD_D / 2) / WORLD_D) * size,
   ]
 
-  ctx.fillStyle = "#2D4B24"
+  ctx.fillStyle = "#233F1F"
   ctx.fillRect(0, 0, size, size)
 
-  // Gambar Lahan Pertanian (Kotak-kotak Hijau Muda di Kanan Atas)
-  const [sx, sy] = tC(90, -110)
-  ctx.fillStyle = "#6E9F4A"
-  ctx.fillRect(sx, sy, 80, 80)
-  ctx.strokeStyle = "#2D4B24"
-  ctx.lineWidth = 4
-  ctx.strokeRect(sx, sy, 80, 80)
   ctx.beginPath()
-  ctx.moveTo(sx + 40, sy); ctx.lineTo(sx + 40, sy + 80)
-  ctx.moveTo(sx, sy + 40); ctx.lineTo(sx + 80, sy + 40)
-  ctx.stroke()
+  const pStart = tC(20, 50)
+  ctx.moveTo(pStart[0], pStart[1])
+  for (let i = 0; i <= 100; i++) {
+    const p = curves.oxbow.getPointAt(i / 100)
+    const [px, py] = tC(p.x, p.z)
+    ctx.lineTo(px, py)
+  }
+  ctx.closePath()
+  ctx.fillStyle = "#1E586E"
+  ctx.fill()
+
+  const [sx, sy] = tC(70, -110)
+  const boxSize = 22
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#5E8C3B" : "#71A647"
+      ctx.fillRect(sx + c * boxSize, sy + r * boxSize, boxSize - 2, boxSize - 2)
+    }
+  }
 
   const paintRiver = (curve: THREE.CatmullRomCurve3, segs: number, outer: number, inner: number) => {
     const draw = (w: number, col: string) => {
@@ -202,12 +213,11 @@ function buildGroundTex3D(curves: ReturnType<typeof makeCurves3D>) {
       ctx.lineCap = "round"; ctx.lineJoin = "round"
       ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke()
     }
-    draw(outer * (size / WORLD_W), "#6B5D43")
-    draw(inner * (size / WORLD_W), "#1E5F74")
+    draw(outer * (size / WORLD_W), "#5C4F39")
+    draw(inner * (size / WORLD_W), "#1E586E")
   }
 
-  paintRiver(curves.main, 100, 20, 14)
-  paintRiver(curves.oxbow, 150, 30, 22) // Oxbow lebih lebar seperti danau
+  paintRiver(curves.main, 100, 22, 16)
   paintRiver(curves.irigasi, 50, 10, 6)
   paintRiver(curves.channelBawah, 20, 14, 10)
   paintRiver(curves.channelAtas, 20, 14, 10)
@@ -236,6 +246,28 @@ function buildTerrain3D(segX: number, segZ: number, samples: THREE.Vector3[], te
   geo.setIndex(idx)
   geo.computeVertexNormals()
   return new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: texture, roughness: 0.85 }))
+}
+
+function buildFilledOxbowWater(oxbowCurve: THREE.CatmullRomCurve3, waterTex: THREE.CanvasTexture) {
+  const shape = new THREE.Shape()
+  const pts = oxbowCurve.getPoints(100)
+  shape.moveTo(pts[0].x, -pts[0].z)
+  for (let i = 1; i < pts.length; i++) {
+    shape.lineTo(pts[i].x, -pts[i].z)
+  }
+  shape.closePath()
+
+  const geo = new THREE.ShapeGeometry(shape)
+  geo.rotateX(-Math.PI / 2)
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    map: waterTex, color: new THREE.Color("#1B6079"), emissive: new THREE.Color("#0A2B36"),
+    emissiveIntensity: 0.35, roughness: 0.1, opacity: 0.9, transparent: true, side: THREE.DoubleSide
+  })
+
+  const mesh = new THREE.Mesh(geo, mat)
+  mesh.position.y = BED_DEPTH + 2.8
+  return { mesh, mat }
 }
 
 interface Ribbon3D { 
@@ -300,38 +332,60 @@ function updateRibbon3D(rb: Ribbon3D, floodOff: number, elapsed: number, flowSpe
   rb.waterTex.offset.y = -(elapsed * flowSpeed) % 1
 }
 
-// ─── PINTU AIR STRUKTURAL PRESISI MENYEBERANG SALURAN ───────────────────────
-function createPintuIrigasi(pt: THREE.Vector3, isVerticalChannel: boolean) {
+function createHouseMesh() {
   const group = new THREE.Group()
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(3.5, 2.5, 3.5),
+    new THREE.MeshStandardMaterial({ color: 0xEAE6DF, roughness: 0.7 })
+  )
+  body.position.y = 1.25; body.castShadow = true; group.add(body)
 
-  // Posisi Pintu Menyeberangi Saluran Penghubung Horizontal
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(3.0, 1.8, 4),
+    new THREE.MeshStandardMaterial({ color: 0xB84A39, roughness: 0.5 })
+  )
+  roof.position.y = 3.4; roof.rotation.y = Math.PI / 4; roof.castShadow = true; group.add(roof)
+  return group
+}
+
+function createTreeMesh() {
+  const group = new THREE.Group()
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.4, 2.0, 6),
+    new THREE.MeshStandardMaterial({ color: 0x4A3525, roughness: 0.9 })
+  )
+  trunk.position.y = 1.0; trunk.castShadow = true; group.add(trunk)
+
+  const leaves = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(1.8),
+    new THREE.MeshStandardMaterial({ color: 0x2D5A27, roughness: 0.8 })
+  )
+  leaves.position.y = 2.8; leaves.castShadow = true; group.add(leaves)
+  return group
+}
+
+function createPintuIrigasi(pt: THREE.Vector3) {
+  const group = new THREE.Group()
   const width = 14.0
   const deck = new THREE.Mesh(
     new THREE.BoxGeometry(5.0, 1.4, width),
     new THREE.MeshStandardMaterial({ color: 0x8A969E, roughness: 0.4 })
   )
-  deck.position.set(0, 5.0, 0)
-  deck.castShadow = true
-  group.add(deck)
+  deck.position.set(0, 5.0, 0); deck.castShadow = true; group.add(deck)
 
-  // Tanggul Kiri-Kanan Menempel Daratan
   const wallL = new THREE.Mesh(
     new THREE.BoxGeometry(6.0, 7.0, 2.5),
     new THREE.MeshStandardMaterial({ color: 0x3A444C, roughness: 0.7 })
   )
   wallL.position.set(0, 1.5, -width / 2 + 1)
-  const wallR = wallL.clone()
-  wallR.position.set(0, 1.5, width / 2 - 1)
+  const wallR = wallL.clone(); wallR.position.set(0, 1.5, width / 2 - 1)
   group.add(wallL); group.add(wallR)
 
-  // Daun Pintu Air Pengatur (Cream/Kuning Sesuai Sketsa)
   const leaf = new THREE.Mesh(
     new THREE.BoxGeometry(0.6, 4.0, width - 4),
     new THREE.MeshStandardMaterial({ color: 0xDDD4B8, roughness: 0.3, metalness: 0.4 })
   )
-  leaf.position.set(0, 1.0, 0)
-  leaf.castShadow = true
-  group.add(leaf)
+  leaf.position.set(0, 1.0, 0); leaf.castShadow = true; group.add(leaf)
 
   group.position.set(pt.x, BED_DEPTH + 0.5, pt.z)
   return { group, leaf, basePosY: 1.0 }
@@ -356,7 +410,7 @@ export function DigitalTwinViewer({ score = 50, gateOpening }: DigitalTwinViewer
 
   const mountRef   = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
-  const stRef      = useRef({ t: 0, theta: 0.1, phi: 0.55, radius: 240, dragging: false, lastX: 0, lastY: 0, moved: false })
+  const stRef      = useRef({ t: 0, theta: 0.2, phi: 0.6, radius: 250, dragging: false, lastX: 0, lastY: 0, moved: false })
   const openingRef = useRef(effectiveOpening)
 
   const [timeline, setTimeline] = useState(Math.round(score * 0.55))
@@ -373,7 +427,7 @@ export function DigitalTwinViewer({ score = 50, gateOpening }: DigitalTwinViewer
 
     const scene = new THREE.Scene()
     scene.background = new THREE.Color("#7BB8CC")
-    scene.fog = new THREE.FogExp2("#9DCFE0", 0.0025)
+    scene.fog = new THREE.FogExp2("#9DCFE0", 0.0022)
 
     const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 800)
     const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -402,51 +456,106 @@ export function DigitalTwinViewer({ score = 50, gateOpening }: DigitalTwinViewer
     terrain.receiveShadow = true
     scene.add(terrain)
 
-    // Air Sungai, Oxbow, Irigasi & Kanal
     const waterTex = createWaterTexture()
-    const mainWater    = buildRibbonMesh(curves.main, 120, 13.0, waterTex)
-    const oxbowWater   = buildRibbonMesh(curves.oxbow, 150, 21.0, waterTex)
+    const mainWater    = buildRibbonMesh(curves.main, 120, 14.0, waterTex)
+    const filledOxbow  = buildFilledOxbowWater(curves.oxbow, waterTex)
     const irigasiWater = buildRibbonMesh(curves.irigasi, 50, 6.0, waterTex)
     const chBawahWater = buildRibbonMesh(curves.channelBawah, 20, 9.0, waterTex)
     const chAtasWater  = buildRibbonMesh(curves.channelAtas, 20, 9.0, waterTex)
 
-    scene.add(mainWater.mesh); scene.add(oxbowWater.mesh); scene.add(irigasiWater.mesh)
-    scene.add(chBawahWater.mesh); scene.add(chAtasWater.mesh)
+    scene.add(mainWater.mesh); scene.add(filledOxbow.mesh)
+    scene.add(irigasiWater.mesh); scene.add(chBawahWater.mesh); scene.add(chAtasWater.mesh)
 
-    // Floating Solar Panel Grid di Tengah Oxbow
+    // ─── FLOATING SOLAR PANEL DENGAN PELAMPUNG PONTON ──────────────────────────
     const solarGroup = new THREE.Group()
-    const pGeo = new THREE.BoxGeometry(3.6, 0.2, 2.4), pMat = new THREE.MeshStandardMaterial({ color: 0x1A2636, roughness: 0.2, metalness: 0.8 })
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 8; c++) {
+    const pGeo = new THREE.BoxGeometry(4.0, 0.2, 2.5)
+    const pMat = new THREE.MeshStandardMaterial({ 
+      color: 0x0F2537, 
+      roughness: 0.1, 
+      metalness: 0.9 
+    })
+    const pontoonMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 })
+
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 6; c++) {
+        const singlePanelGroup = new THREE.Group()
+
         const pMesh = new THREE.Mesh(pGeo, pMat)
-        pMesh.position.set(-82 + c * 4.0, BED_DEPTH + 3.0, -10 + r * 2.8)
-        pMesh.castShadow = true; solarGroup.add(pMesh)
+        pMesh.castShadow = true
+        singlePanelGroup.add(pMesh)
+
+        const pontoon = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.4, 2.7), pontoonMat)
+        pontoon.position.y = -0.2
+        singlePanelGroup.add(pontoon)
+
+        const posX = -70 + c * 4.6
+        const posZ = -10 + r * 3.0
+        singlePanelGroup.position.set(posX, 0, posZ)
+
+        solarGroup.add(singlePanelGroup)
       }
     }
     scene.add(solarGroup)
 
-    // Kantor PDAM & Tangki Air di Ujung Barat Oxbow
+    // PDAM Building
     const pdamGroup = new THREE.Group()
-    const bldg = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 10), new THREE.MeshStandardMaterial({ color: 0xDCDCDC }))
+    const bldg = new THREE.Mesh(new THREE.BoxGeometry(12, 6, 10), new THREE.MeshStandardMaterial({ color: 0xCCCCCC }))
     bldg.position.set(-118, 3, 0); bldg.castShadow = true; pdamGroup.add(bldg)
-    const tank1 = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 5, 16), new THREE.MeshStandardMaterial({ color: 0x7E9AB3 }))
+    const tank1 = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 5, 16), new THREE.MeshStandardMaterial({ color: 0x6A8FA8 }))
     tank1.position.set(-118, 2.5, 12); tank1.castShadow = true; pdamGroup.add(tank1)
     const tank2 = tank1.clone(); tank2.position.set(-118, 2.5, -12); pdamGroup.add(tank2)
     scene.add(pdamGroup)
 
-    // ─── DUA PINTU AIR (PINTU IRIGASI ATAS & BAWAH) ──────────────────────────
-    const gateBawahObj = createPintuIrigasi(new THREE.Vector3(25, 0, 50), false)
-    const gateAtasObj  = createPintuIrigasi(new THREE.Vector3(25, 0, -50), false)
+    // Pemukiman Warga
+    const houseGroup = new THREE.Group()
+    const treeGroup  = new THREE.Group()
+
+    const houseCoords = [
+      [-130, 80], [-120, 95], [-110, 110], [-135, 60], [-125, 40],
+      [-130, -60], [-125, -80], [-115, -100], [-135, -40],
+      [60, -90], [75, -100], [85, -110], [95, -95]
+    ]
+    houseCoords.forEach(([hx, hz]) => {
+      const h = createHouseMesh()
+      const gy = terrainHeight3D(hx, hz, samples)
+      h.position.set(hx, gy, hz)
+      h.rotation.y = Math.random() * Math.PI
+      houseGroup.add(h)
+    })
+    scene.add(houseGroup)
+
+    // Pepohonan Rimbun
+    for (let i = 0; i < 90; i++) {
+      const ang = Math.random() * Math.PI * 2
+      const rad = 45 + Math.random() * 100
+      const tx = Math.cos(ang) * rad - 30
+      const tz = Math.sin(ang) * rad
+
+      if (!isInsideOxbowArea(tx, tz)) {
+        const gy = terrainHeight3D(tx, tz, samples)
+        if (gy >= 0) {
+          const tr = createTreeMesh()
+          tr.position.set(tx, gy, tz)
+          const sc = 0.8 + Math.random() * 0.5
+          tr.scale.set(sc, sc, sc)
+          treeGroup.add(tr)
+        }
+      }
+    }
+    scene.add(treeGroup)
+
+    // Intake Gates
+    const gateBawahObj = createPintuIrigasi(new THREE.Vector3(25, 0, 50))
+    const gateAtasObj  = createPintuIrigasi(new THREE.Vector3(25, 0, -50))
     scene.add(gateBawahObj.group); scene.add(gateAtasObj.group)
 
-    // Markers Interactive
+    // Interactive Markers
     const markerMeshes: Record<string, THREE.Mesh> = {}
     STATIONS_3D.forEach(st => {
-      const curve = st.curve === "oxbow" ? curves.oxbow : curves.main
-      const pos3  = curve.getPointAt(st.t)
-      const gy    = terrainHeight3D(pos3.x, pos3.z, samples)
-      const mat   = new THREE.MeshStandardMaterial({ color: PALETTE_3D.warn, emissive: new THREE.Color(PALETTE_3D.warn), emissiveIntensity: 0.6 })
-      const mesh  = new THREE.Mesh(new THREE.SphereGeometry(1.4, 20, 20), mat)
+      const pos3 = st.curve === "inner" ? new THREE.Vector3(-40, 0, 0) : (st.curve === "oxbow" ? curves.oxbow : curves.main).getPointAt(st.t)
+      const gy   = terrainHeight3D(pos3.x, pos3.z, samples)
+      const mat  = new THREE.MeshStandardMaterial({ color: PALETTE_3D.warn, emissive: new THREE.Color(PALETTE_3D.warn), emissiveIntensity: 0.6 })
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.4, 20, 20), mat)
       mesh.position.set(pos3.x, gy + 3.0, pos3.z); mesh.userData.id = st.id; mesh.userData.groundY = gy
       scene.add(mesh); markerMeshes[st.id] = mesh
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.0, 8), new THREE.MeshStandardMaterial({ color: PALETTE_3D.muted }))
@@ -514,15 +623,20 @@ export function DigitalTwinViewer({ score = 50, gateOpening }: DigitalTwinViewer
       const t = stRef.current.t
       const gi = floodIntensity(t), giOx = Math.min(1, gi * 1.35)
 
-      // Elevasi Pintu Air Berdasarkan Slider Pembukaan
       const lift = (openingRef.current / 100) * 3.2
       gateBawahObj.leaf.position.y = gateBawahObj.basePosY + lift
       gateAtasObj.leaf.position.y  = gateAtasObj.basePosY + lift
 
-      solarGroup.position.y = giOx * 2.2
+      // Naik-Turun Air Danau
+      const waterY = BED_DEPTH + 2.8 + giOx * 2.2
+      filledOxbow.mesh.position.y = waterY
+
+      // Update Elevasi Floating Solar Panel Agar Mengapung & Bergelombang
+      solarGroup.children.forEach((child) => {
+        child.position.y = waterY + 0.35 + Math.sin(el * 2.5 + child.position.x) * 0.06
+      })
 
       updateRibbon3D(mainWater, gi * 2.0, el, 0.35)
-      updateRibbon3D(oxbowWater, giOx * 2.2, el, 0.15)
       updateRibbon3D(irigasiWater, gi * 1.5, el, 0.2)
       updateRibbon3D(chBawahWater, gi * 2.0, el, 0.25)
       updateRibbon3D(chAtasWater, gi * 2.0, el, 0.25)
@@ -573,9 +687,9 @@ export function DigitalTwinViewer({ score = 50, gateOpening }: DigitalTwinViewer
       {/* Header */}
       <div style={{ padding: "20px 20px 10px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <p style={{ color: PALETTE_3D.cream, fontSize: 17, fontWeight: 700, letterSpacing: 0.3 }}>Digital Twin Sungai & KARBOX</p>
+          <p style={{ color: PALETTE_3D.cream, fontSize: 17, fontWeight: 700, letterSpacing: 0.3 }}>Digital Twin KARBOX - Full Oxbow Lake</p>
           <p style={{ color: PALETTE_3D.muted, fontSize: 11, marginTop: 3, fontFamily: "'JetBrains Mono',monospace" }}>
-            Model Oxbow Tapal Kuda Ganda Pintu Irigasi
+            Visualisasi Danau Retensi Masif Interior Tapal Kuda & Floating Solar Panel
           </p>
         </div>
         <div style={{ background: "rgba(15,40,51,0.85)", border: `1px solid ${PALETTE_3D.panelBorder}`, borderRadius: 8, padding: "6px 11px", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: PALETTE_3D.muted, textAlign: "right" }}>
@@ -645,7 +759,7 @@ export function DigitalTwinViewer({ score = 50, gateOpening }: DigitalTwinViewer
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <span style={{ color: PALETTE_3D.muted, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontFamily: "'JetBrains Mono',monospace" }}>
-              Fase Simulasi:
+              Simulasi Elevasi Air:
             </span>
             <span style={{ color: PALETTE_3D.cream, fontSize: 14, fontWeight: 700, marginLeft: 8 }}>
               {activeStage.label}
